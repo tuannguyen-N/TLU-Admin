@@ -14,6 +14,7 @@ const statusColors: Record<string, string> = {
   PAID: 'green',
   CANCELLED: 'gray',
   OVERDUE: 'red',
+  UNPAID: 'orange',
 };
 
 const statusLabels: Record<string, string> = {
@@ -21,6 +22,7 @@ const statusLabels: Record<string, string> = {
   PAID: 'Đã thanh toán',
   CANCELLED: 'Đã hủy',
   OVERDUE: 'Quá hạn',
+  UNPAID: 'Chưa thanh toán',
 };
 
 const formatCurrency = (amount: number) => {
@@ -73,6 +75,7 @@ export function PaymentsPage() {
   } = useSemesters();
 
   const [selectedSemester, setSelectedSemester] = useState<Semester | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [generatingId, setGeneratingId] = useState<number | null>(null);
 
   const {
@@ -84,7 +87,7 @@ export function PaymentsPage() {
     totalPages: invoiceTotalPages,
     totalElements: invoiceTotalElements,
     reload: reloadInvoices,
-  } = useTuitionInvoices(selectedSemester?.id ?? null);
+  } = useTuitionInvoices(selectedSemester?.id ?? null, selectedStatus || undefined);
 
   const handleGenerate = async (semesterId: number) => {
     try {
@@ -107,6 +110,11 @@ export function PaymentsPage() {
     }
   };
 
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status);
+    setInvoicePage(0);
+  };
+
   if (selectedSemester) {
     return (
       <TuitionInvoiceList
@@ -118,11 +126,16 @@ export function PaymentsPage() {
         totalPages={invoiceTotalPages}
         totalElements={invoiceTotalElements}
         onPage={setInvoicePage}
-        onBack={() => setSelectedSemester(null)}
+        onBack={() => {
+          setSelectedSemester(null);
+          setSelectedStatus('');
+        }}
         onReload={reloadInvoices}
         statusColors={statusColors}
         statusLabels={statusLabels}
         formatCurrency={formatCurrency}
+        selectedStatus={selectedStatus}
+        onStatusChange={handleStatusChange}
       />
     );
   }

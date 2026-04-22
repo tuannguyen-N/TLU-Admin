@@ -13,6 +13,8 @@ import {
   IconCreditCard,
   IconLogout,
   IconSwitchHorizontal,
+  IconFileDescription,
+  IconCertificate,
 } from '@tabler/icons-react';
 import { Group } from '@mantine/core';
 import logo from '../../assets/TLU_Standard_version-03.png';
@@ -29,10 +31,12 @@ const data = [
   { link: '/lecturers', label: 'Giảng viên', icon: IconChalkboard },
   { link: '/student-classes', label: 'Lớp sinh viên', icon: IconUsers },
   { link: '/departments', label: 'Khoa / Bộ môn', icon: IconBuildingBank },
+  { link: '/exams', label: 'Lịch thi', icon: IconFileDescription },
   { link: '/notifications', label: 'Thông báo', icon: IconBellRinging },
   { link: '/requests', label: 'Đơn từ', icon: IconClipboardList },
   { link: '/news', label: 'Tin tức', icon: IconNews },
   { link: '/payments', label: 'Thanh toán', icon: IconCreditCard },
+  { link: '/academic-results', label: 'Kết quả học tập', icon: IconCertificate },
 ];
 
 export function Navbar() {

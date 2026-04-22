@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Modal, ScrollArea, Text, Group, Button, Select, Loader, Stack, Divider, Card } from '@mantine/core';
+import { Modal, ScrollArea, Text, Group, Button, Loader, Stack, Divider, Card, Select } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconTrash } from '@tabler/icons-react';
 import { LecturerList } from './components/LecturerList';
 import { AddLecturerCard } from './components/AddLecturerCard';
 import { EditLecturerCard } from './components/EditLecturerCard';
 import { useLecturers } from './hooks/useLecturers';
-import type { Lecturer, LecturerFormData, StudentClass, AdvisedClass } from './types';
-import { fetchAdvisedClassesAPI, fetchStudentClassesAPI, assignAdvisorAPI, removeAdvisorAPI } from './services';
+import type { Lecturer, LecturerFormData, StudentClass } from './types';
+import { fetchStudentClassesAPI } from './services';
+import { useAcademicAdvisors } from '../academic-advisors/hooks/useAcademicAdvisors';
 import classes from './LecturersPage.module.css';
 
 export function LecturersPage() {
@@ -16,12 +17,13 @@ export function LecturersPage() {
     const [addModalOpened, setAddModalOpened] = useState(false);
     const [editingLecturer, setEditingLecturer] = useState<Lecturer | null>(null);
     const [advisorLecturer, setAdvisorLecturer] = useState<Lecturer | null>(null);
-    const [advisedClasses, setAdvisedClasses] = useState<AdvisedClass[]>([]);
     const [availableClasses, setAvailableClasses] = useState<StudentClass[]>([]);
     const [loadingAdvised, setLoadingAdvised] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [assigning, setAssigning] = useState(false);
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+
+    const { advisorDetail, fetchAdvisorDetail, deleteClass, createAcademicAdvisor } = useAcademicAdvisors();
 
     const {
         lecturers,
@@ -37,7 +39,6 @@ export function LecturersPage() {
         departments,
     } = useLecturers(selectedFaculty);
 
-    // Auto-select first faculty when loaded
     useEffect(() => {
         if (!selectedFaculty && faculties.length > 0 && !facultiesLoaded) {
             setSelectedFaculty(faculties[0].value);
@@ -75,11 +76,9 @@ export function LecturersPage() {
     const handleViewAdvisor = async (lecturer: Lecturer) => {
         setAdvisorLecturer(lecturer);
         setLoadingAdvised(true);
-        setAdvisedClasses([]);
         setSelectedClassId(null);
         try {
-            const classes = await fetchAdvisedClassesAPI(lecturer.id);
-            setAdvisedClasses(classes);
+            await fetchAdvisorDetail(lecturer.id);
         } catch (err) {
             notifications.show({
                 title: 'Lỗi',
@@ -93,7 +92,6 @@ export function LecturersPage() {
 
     const handleAdvisorModalClose = () => {
         setAdvisorLecturer(null);
-        setAdvisedClasses([]);
         setAvailableClasses([]);
         setSelectedClassId(null);
     };
@@ -114,16 +112,23 @@ export function LecturersPage() {
         if (!advisorLecturer || !selectedClassId) return;
         setAssigning(true);
         try {
-            await assignAdvisorAPI(advisorLecturer.id, parseInt(selectedClassId));
-            notifications.show({
-                title: 'Thành công',
-                message: 'Bổ nhiệm cố vấn học tập thành công',
-                color: 'green',
-            });
-            const newAdvised = await fetchAdvisedClassesAPI(advisorLecturer.id);
-            setAdvisedClasses(newAdvised);
-            setSelectedClassId(null);
-            reload();
+            const result = await createAcademicAdvisor(advisorLecturer.id, parseInt(selectedClassId));
+            if (result.success) {
+                notifications.show({
+                    title: 'Thành công',
+                    message: 'Bổ nhiệm cố vấn học tập thành công',
+                    color: 'green',
+                });
+                await fetchAdvisorDetail(advisorLecturer.id);
+                setSelectedClassId(null);
+                reload();
+            } else {
+                notifications.show({
+                    title: 'Lỗi',
+                    message: result.error || 'Bổ nhiệm cố vấn học tập thất bại',
+                    color: 'red',
+                });
+            }
         } catch (err) {
             notifications.show({
                 title: 'Lỗi',
@@ -135,17 +140,23 @@ export function LecturersPage() {
         }
     };
 
-    const handleRemoveAdvisor = async (classId: number) => {
+    const handleRemoveAdvisor = async (academicAdvisorId: number) => {
         if (!advisorLecturer) return;
         try {
-            await removeAdvisorAPI(advisorLecturer.id, classId);
-            notifications.show({
-                title: 'Thành công',
-                message: 'Xóa cố vấn học tập thành công',
-                color: 'green',
-            });
-            const newAdvised = await fetchAdvisedClassesAPI(advisorLecturer.id);
-            setAdvisedClasses(newAdvised);
+            const success = await deleteClass(academicAdvisorId);
+            if (success) {
+                notifications.show({
+                    title: 'Thành công',
+                    message: 'Xóa cố vấn học tập thành công',
+                    color: 'green',
+                });
+            } else {
+                notifications.show({
+                    title: 'Lỗi',
+                    message: 'Xóa cố vấn học tập thất bại',
+                    color: 'red',
+                });
+            }
             reload();
         } catch (err) {
             notifications.show({
@@ -156,11 +167,18 @@ export function LecturersPage() {
         }
     };
 
+    const classSelectData = availableClasses
+        .filter(cls => !advisorDetail?.classInfo?.some(ac => ac.classCode === cls.classCode))
+        .map(cls => ({
+            value: cls.id.toString(),
+            label: `${cls.classCode} - ${cls.majorName} (${cls.startYear})`,
+        }));
+
     useEffect(() => {
-        if (advisorLecturer) {
-            loadAvailableClasses(advisorLecturer.departmentName);
+        if (advisorLecturer && selectedFaculty) {
+            loadAvailableClasses(selectedFaculty);
         }
-    }, [advisorLecturer]);
+    }, [advisorLecturer, selectedFaculty]);
 
     return (
         <div className={classes.page}>
@@ -254,17 +272,17 @@ export function LecturersPage() {
                             <Group justify="center" py="md">
                                 <Loader size="sm" />
                             </Group>
-                        ) : advisedClasses.length === 0 ? (
+                        ) : !advisorDetail?.classInfo?.length ? (
                             <Text c="dimmed" ta="center" py="md">Giảng viên chưa làm cố vấn học tập lớp nào</Text>
                         ) : (
                             <Stack gap="xs">
-                                {advisedClasses.map((cls) => (
-                                    <Card key={cls.id} withBorder padding="xs">
+                                {advisorDetail.classInfo.map((cls) => (
+                                    <Card key={cls.academicAdvisorId} withBorder padding="xs">
                                         <Group justify="space-between">
                                             <div>
                                                 <Text fw={500}>{cls.classCode}</Text>
                                                 <Text size="xs" c="dimmed">
-                                                    {cls.majorName} | Khóa {cls.startYear} | {cls.studentCount} sinh viên
+                                                    {cls.majorCode} | Khóa {cls.startYear}
                                                 </Text>
                                             </div>
                                             <Button
@@ -272,7 +290,7 @@ export function LecturersPage() {
                                                 color="red"
                                                 variant="light"
                                                 leftSection={<IconTrash size={14} />}
-                                                onClick={() => handleRemoveAdvisor(cls.id)}
+                                                onClick={() => handleRemoveAdvisor(cls.academicAdvisorId)}
                                             >
                                                 Xóa
                                             </Button>
@@ -287,17 +305,14 @@ export function LecturersPage() {
                         <Group align="flex-end" gap="sm">
                             <Select
                                 label="Chọn lớp sinh viên"
-                                placeholder="Chọn lớp"
-                                data={availableClasses
-                                    .filter(cls => !advisedClasses.some(ac => ac.id === cls.id))
-                                    .map(cls => ({
-                                        value: cls.id.toString(),
-                                        label: `${cls.classCode} - ${cls.majorName} (${cls.startYear})`
-                                    }))}
+                                placeholder="Tìm kiếm lớp..."
+                                data={classSelectData}
                                 value={selectedClassId}
-                                onChange={setSelectedClassId}
+                                onChange={(val) => setSelectedClassId(val as string | null)}
+                                searchable
                                 disabled={loadingClasses}
                                 style={{ flex: 1 }}
+                                nothingFoundMessage="Không tìm thấy lớp"
                             />
                             <Button
                                 onClick={handleAssignAdvisor}

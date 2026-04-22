@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { fetchTuitionInvoices } from '../services';
 import type { TuitionInvoice } from '../types';
 
-export function useTuitionInvoices(semesterId: number | null) {
+export function useTuitionInvoices(semesterId: number | null, status?: string) {
   const [invoices, setInvoices] = useState<TuitionInvoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -10,12 +10,12 @@ export function useTuitionInvoices(semesterId: number | null) {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  const loadInvoices = useCallback(async (semId: number, pageNum: number) => {
+  const loadInvoices = useCallback(async (semId: number, pageNum: number, statusFilter?: string) => {
     if (!semId) return;
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchTuitionInvoices({ semesterId: semId, page: pageNum, size: 10 });
+      const result = await fetchTuitionInvoices({ semesterId: semId, page: pageNum, size: 10, status: statusFilter });
       setInvoices(result.invoices);
       setTotalPages(result.totalPages);
       setTotalElements(result.totalElements);
@@ -31,16 +31,16 @@ export function useTuitionInvoices(semesterId: number | null) {
   useEffect(() => {
     if (semesterId !== null) {
       setPage(0);
-      loadInvoices(semesterId, 0);
+      loadInvoices(semesterId, 0, status);
     }
-  }, [semesterId, loadInvoices]);
+  }, [semesterId, status, loadInvoices]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
     if (semesterId !== null) {
-      loadInvoices(semesterId, newPage);
+      loadInvoices(semesterId, newPage, status);
     }
-  }, [semesterId, loadInvoices]);
+  }, [semesterId, status, loadInvoices]);
 
   return {
     invoices,
@@ -50,6 +50,6 @@ export function useTuitionInvoices(semesterId: number | null) {
     setPage: handlePageChange,
     totalPages,
     totalElements,
-    reload: () => loadInvoices(semesterId!, page),
+    reload: () => loadInvoices(semesterId!, page, status),
   };
 }

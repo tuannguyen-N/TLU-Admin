@@ -5,7 +5,7 @@ export interface TuitionInvoice {
   semesterCode: string;
   totalAmount: number;
   finalAmount: number;
-  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'OVERDUE';
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'OVERDUE' | 'UNPAID';
   dueDate: string;
 }
 

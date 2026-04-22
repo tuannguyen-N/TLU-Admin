@@ -14,6 +14,8 @@ import { NewsPage } from '../features/news/NewsPage';
 import { RequestsPage } from '../features/applications/RequestsPage';
 import { NotificationsPage } from '../features/notifications/NotificationsPage';
 import { PaymentsPage } from '../features/payments/PaymentsPage';
+import { ExamsPage } from '../features/exams/ExamsPage';
+import { AcademicResultsPage } from '../features/academic-results/AcademicResultsPage';
 
 export default function AppRoutes() {
   return (
@@ -33,6 +35,8 @@ export default function AppRoutes() {
       <Route path="/requests" element={<RequestsPage />} />
       <Route path="/notifications" element={<NotificationsPage />} />
       <Route path="/payments" element={<PaymentsPage />} />
+      <Route path="/academic-results" element={<AcademicResultsPage />} />
+      <Route path="/exams" element={<ExamsPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -5,9 +5,8 @@ export interface Lecturer {
   email: string;
   phoneNumber: string;
   departmentName: string;
-  departmentId: number;
   status: 'ACTIVE' | 'INACTIVE';
-  isAdvisor: boolean;
+  isAcademicAdvisor: boolean;
 }
 
 export interface LecturerFormData {

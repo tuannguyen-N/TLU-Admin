@@ -1,4 +1,4 @@
-import { Pagination, Group, Text, Button, Loader, Center, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { Pagination, Group, Text, Button, Loader, Center, Badge, ActionIcon, Tooltip, Select } from '@mantine/core';
 import { IconArrowLeft, IconRefresh, IconRotateClockwise } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useState } from 'react';
@@ -21,15 +21,25 @@ interface Props {
   statusColors: Record<string, string>;
   statusLabels: Record<string, string>;
   formatCurrency: (amount: number) => string;
+  selectedStatus: string;
+  onStatusChange: (status: string) => void;
 }
 
 function calculateStats(invoices: TuitionInvoice[]) {
-  const pending = invoices.filter(i => i.status === 'PENDING').length;
+  const pending = invoices.filter(i => i.status === 'PENDING' || i.status === 'UNPAID').length;
   const paid = invoices.filter(i => i.status === 'PAID').length;
   const cancelled = invoices.filter(i => i.status === 'CANCELLED').length;
   const overdue = invoices.filter(i => i.status === 'OVERDUE').length;
   return { pending, paid, cancelled, overdue, total: invoices.length };
 }
+
+const statusOptions = [
+  { value: '', label: 'Tất cả' },
+  { value: 'PAID', label: 'Đã thanh toán' },
+  { value: 'PENDING', label: 'Chưa thanh toán' },
+  { value: 'UNPAID', label: 'Chưa thanh toán' },
+  { value: 'OVERDUE', label: 'Quá hạn' },
+];
 
 export function TuitionInvoiceList({
   semester,
@@ -45,6 +55,8 @@ export function TuitionInvoiceList({
   statusColors,
   statusLabels,
   formatCurrency,
+  selectedStatus,
+  onStatusChange,
 }: Props) {
   const [regeneratingId, setRegeneratingId] = useState<number | null>(null);
   const stats = calculateStats(invoices);
@@ -85,6 +97,14 @@ export function TuitionInvoiceList({
             </p>
           </div>
           <Group gap={8}>
+            <Select
+              placeholder="Lọc theo trạng thái"
+              data={statusOptions}
+              value={selectedStatus}
+              onChange={(v) => v !== null && onStatusChange(v)}
+              size="sm"
+              style={{ width: 180 }}
+            />
             <Button
               variant="light"
               color="gray"

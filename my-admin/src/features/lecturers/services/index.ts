@@ -14,9 +14,8 @@ interface LecturerApiResponse {
   email: string;
   phoneNumber: string;
   departmentName: string;
-  departmentId: number;
   status: string;
-  isAdvisor: boolean;
+  isAcademicAdvisor: boolean;
 }
 
 interface LecturerApiListResponse {

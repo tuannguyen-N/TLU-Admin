@@ -1,66 +1,60 @@
-import {
-    Pagination, Group, Text, Button, ActionIcon, Tooltip, Loader, Center, Modal, Select, Badge
-} from '@mantine/core';
-import {
-    IconPlus, IconPencil, IconTrash, IconRefresh, IconSchool
-} from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
+import { Pagination, Group, Text, Button, Loader, Center, Badge, Select, ActionIcon, Tooltip, Modal } from '@mantine/core';
+import { IconPlus, IconRefresh, IconPencil, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
-import type { Lecturer } from '../types';
-import type { FacultyOption } from '../../subjects/types';
-import classes from './LecturerList.module.css';
+import { notifications } from '@mantine/notifications';
+import type { Exam, SemesterOption } from '../types';
+import classes from './ExamList.module.css';
 
 interface Props {
-    lecturers: Lecturer[];
+    exams: Exam[];
     loading: boolean;
     error: string | null;
     page: number;
     totalPages: number;
+    totalElements: number;
     onPage: (p: number) => void;
     onReload: () => void;
-    onAddLecturer: () => void;
-    onEditLecturer: (lecturer: Lecturer) => void;
-    onDeleteConfirm: (id: number) => void;
-    onViewAdvisor: (lecturer: Lecturer) => void;
-    selectedFaculty: string;
-    onFacultyChange: (f: string) => void;
-    faculties: FacultyOption[];
+    onAddExam: () => void;
+    onEditExam: (exam: Exam) => void;
+    onDeleteExam: (id: number) => Promise<void>;
+    semesters: SemesterOption[];
+    selectedSemester: string;
+    onSemesterChange: (semesterId: string) => void;
 }
 
-export function LecturerList({
-    lecturers, loading, error,
-    page, totalPages,
-    onPage, onReload, onAddLecturer, onEditLecturer,
-    onDeleteConfirm, onViewAdvisor, selectedFaculty, onFacultyChange, faculties,
+export function ExamList({
+    exams, loading, error,
+    page, totalPages, totalElements,
+    onPage, onReload, onAddExam,
+    onEditExam, onDeleteExam,
+    semesters, selectedSemester, onSemesterChange,
 }: Props) {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deletingLecturer, setDeletingLecturer] = useState<Lecturer | null>(null);
+    const [deletingExam, setDeletingExam] = useState<Exam | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    const handleRefresh = () => {
-        onReload();
-    };
+    const handleRefresh = () => onReload();
 
-    const handleDeleteClick = (lecturer: Lecturer) => {
-        setDeletingLecturer(lecturer);
+    const handleDeleteClick = (exam: Exam) => {
+        setDeletingExam(exam);
         setDeleteModalOpen(true);
     };
 
     const handleDeleteConfirm = async () => {
-        if (!deletingLecturer) return;
+        if (!deletingExam) return;
         setDeleting(true);
         try {
-            await onDeleteConfirm(deletingLecturer.id);
+            await onDeleteExam(deletingExam.id);
             notifications.show({
                 title: 'Thành công',
-                message: 'Xóa giảng viên thành công',
+                message: 'Xóa lịch thi thành công',
                 color: 'green',
             });
             setDeleteModalOpen(false);
         } catch (err) {
             notifications.show({
                 title: 'Lỗi',
-                message: 'Xóa giảng viên thất bại',
+                message: err instanceof Error ? err.message : 'Xóa lịch thi thất bại',
                 color: 'red',
             });
         } finally {
@@ -71,15 +65,14 @@ export function LecturerList({
     return (
         <div className={classes.wrapper}>
             <div className={classes.header}>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div className={classes.headerLeft}>
                     <Select
-                        placeholder="Chọn khoa"
-                        data={faculties.map(f => ({ value: f.value, label: f.label }))}
-                        value={selectedFaculty}
-                        onChange={(v) => v && onFacultyChange(v)}
-                        required
+                        placeholder="Chọn học kỳ"
+                        data={semesters.map(s => ({ value: s.value, label: s.label }))}
+                        value={selectedSemester}
+                        onChange={(v) => v && onSemesterChange(v)}
                         size="sm"
-                        style={{ width: 200 }}
+                        style={{ width: 280 }}
                     />
                 </div>
                 <div className={classes.headerRight}>
@@ -96,10 +89,10 @@ export function LecturerList({
                         <Button
                             leftSection={<IconPlus size={16} />}
                             size="sm"
-                            onClick={onAddLecturer}
+                            onClick={onAddExam}
                             style={{ backgroundColor: '#111827', color: '#fff' }}
                         >
-                            Thêm giảng viên
+                            Thêm lịch thi
                         </Button>
                     </Group>
                 </div>
@@ -119,57 +112,53 @@ export function LecturerList({
                         <table className={classes.table}>
                             <thead>
                                 <tr>
-                                    <th>Mã giảng viên</th>
-                                    <th>Họ tên</th>
-                                    <th>Email</th>
-                                    <th>Số điện thoại</th>
-                                    <th>Tên bộ môn</th>
-                                    <th>Cố vấn học tập</th>
+                                    <th>Mã môn</th>
+                                    <th>Tên môn</th>
+                                    <th>Ngày thi</th>
+                                    <th>Giờ bắt đầu</th>
+                                    <th>Giờ kết thúc</th>
+                                    <th>Phòng</th>
+                                    <th>Địa điểm</th>
+                                    <th>Hình thức</th>
+                                    <th>Loại thi</th>
                                     <th className={classes.actionsCol}>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {lecturers.length === 0 ? (
+                                {exams.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className={classes.empty}>Không tìm thấy giảng viên nào</td>
+                                        <td colSpan={10} className={classes.empty}>Không tìm thấy lịch thi nào</td>
                                     </tr>
                                 ) : (
-                                    lecturers.map((l) => (
-                                        <tr key={l.id} className={classes.row}>
-                                            <td className={classes.code}>{l.lecturerCode}</td>
+                                    exams.map((exam) => (
+                                        <tr key={exam.id} className={classes.row}>
+                                            <td className={classes.code}>{exam.subjectCode}</td>
                                             <td>
-                                                <Text size="sm" fw={600}>{l.fullName}</Text>
+                                                <Text size="sm" fw={600}>{exam.subjectName}</Text>
                                             </td>
-                                            <td>{l.email}</td>
-                                            <td>{l.phoneNumber}</td>
-                                            <td>{l.departmentName}</td>
+                                            <td>{exam.examDate}</td>
+                                            <td>{exam.startTime}</td>
+                                            <td>{exam.endTime}</td>
+                                            <td>{exam.examRoom}</td>
+                                            <td>{exam.examLocation}</td>
                                             <td>
                                                 <Badge
-                                                    color={l.isAcademicAdvisor ? 'green' : 'gray'}
+                                                    color={exam.examFormat === 'Online' ? 'blue' : 'green'}
                                                     variant="light"
                                                     size="sm"
                                                 >
-                                                    {l.isAcademicAdvisor ? 'Có' : 'Không'}
+                                                    {exam.examFormat}
                                                 </Badge>
                                             </td>
+                                            <td>{exam.examType}</td>
                                             <td>
                                                 <Group gap={4} wrap="nowrap">
-                                                    <Tooltip label="Quản lý cố vấn học tập" position="top">
-                                                        <ActionIcon
-                                                            variant="subtle"
-                                                            color="blue"
-                                                            size="sm"
-                                                            onClick={() => onViewAdvisor(l)}
-                                                        >
-                                                            <IconSchool size={16} />
-                                                        </ActionIcon>
-                                                    </Tooltip>
                                                     <Tooltip label="Sửa" position="top">
                                                         <ActionIcon
                                                             variant="subtle"
                                                             color="yellow"
                                                             size="sm"
-                                                            onClick={() => onEditLecturer(l)}
+                                                            onClick={() => onEditExam(exam)}
                                                         >
                                                             <IconPencil size={16} />
                                                         </ActionIcon>
@@ -179,7 +168,7 @@ export function LecturerList({
                                                             variant="subtle"
                                                             color="red"
                                                             size="sm"
-                                                            onClick={() => handleDeleteClick(l)}
+                                                            onClick={() => handleDeleteClick(exam)}
                                                         >
                                                             <IconTrash size={16} />
                                                         </ActionIcon>
@@ -213,7 +202,7 @@ export function LecturerList({
                 centered
             >
                 <Text mb="lg">
-                    Bạn có chắc chắn muốn xóa giảng viên <strong>{deletingLecturer?.fullName}</strong> không?
+                    Bạn có chắc chắn muốn xóa lịch thi <strong>{deletingExam?.subjectName}</strong> không?
                 </Text>
                 <Group justify="flex-end">
                     <Button variant="subtle" onClick={() => setDeleteModalOpen(false)} disabled={deleting}>

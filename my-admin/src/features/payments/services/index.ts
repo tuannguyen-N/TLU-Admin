@@ -30,16 +30,21 @@ export async function fetchTuitionInvoices(params: {
   semesterId: number;
   page?: number;
   size?: number;
+  status?: string;
 }): Promise<{
   invoices: TuitionInvoice[];
   totalElements: number;
   totalPages: number;
   page: number;
 }> {
-  const { semesterId, page = 0, size = 10 } = params;
+  const { semesterId, page = 0, size = 10, status } = params;
+  const queryParams: Record<string, string | number> = { semesterId, page, size };
+  if (status) {
+    queryParams.status = status;
+  }
   const response = await apiClient<ApiResponse<InvoiceApiListResponse>>('/tuition/invoices', {
     method: 'GET',
-    params: { semesterId, page, size },
+    params: queryParams,
   });
   return {
     invoices: response.data.content,
