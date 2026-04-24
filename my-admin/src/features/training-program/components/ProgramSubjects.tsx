@@ -17,6 +17,7 @@ interface SemesterData {
 }
 
 interface Props {
+    programId: number;
     programName: string;
     programCode: string;
     semesters: SemesterData[];
@@ -24,11 +25,12 @@ interface Props {
     error: string | null;
     onBack: () => void;
     onReload: () => void;
-    onAddSubject: (semesterId: number) => void;
+    onAddSubject: (studyProgramId: number) => void;
     onEditSubject: (subject: SubjectDetail) => void;
 }
 
 export function ProgramSubjects({
+    programId,
     programName,
     programCode,
     semesters,
@@ -88,10 +90,8 @@ export function ProgramSubjects({
     };
 
     const handleAddSubject = () => {
-        if (activeTab !== null) {
-            onAddSubject(activeTab);
-        }
-    };
+    onAddSubject(programId);
+  };
 
     return (
         <div className={classes.wrapper}>

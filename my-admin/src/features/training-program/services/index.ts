@@ -271,3 +271,27 @@ export async function deleteSubject(subjectId: number): Promise<void> {
     throw new Error(response.message || 'Xóa môn học thất bại');
   }
 }
+
+interface AddSubjectToProgramPayload {
+  subjectId: number;
+  semesterId: number;
+  electiveGroup: string;
+  isRequired: boolean;
+}
+
+export async function addSubjectToProgram(
+  studyProgramId: number,
+  payload: AddSubjectToProgramPayload
+): Promise<void> {
+  console.log('Adding subject to program with payload:', payload);
+  const response = await apiClient<ApiResponse>(
+    `/study-programs/${studyProgramId}/subjects/create`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
+  if (response.code !== 0) {
+    throw new Error(response.message || 'Thêm môn học thất bại');
+  }
+}

@@ -253,12 +253,12 @@ export function AcademicResultList({
                                                   <div style={{ fontSize: 12, color: '#6B7280' }}>{sub.subjectName}</div>
                                                 </td>
                                                 <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.credits}</td>
-                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.attendanceScore.toFixed(1)}</td>
-                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.midtermScore.toFixed(1)}</td>
-                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.finalScore.toFixed(1)}</td>
+                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.attendanceScore?.toFixed(1) ?? '-'}</td>
+                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.midtermScore?.toFixed(1) ?? '-'}</td>
+                                                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>{sub.finalScore?.toFixed(1) ?? '-'}</td>
                                                 <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                                  <div style={{ fontWeight: 700, marginBottom: 2 }}>{sub.letterGrade}</div>
-                                                  <div style={{ fontSize: 12, color: '#6B7280' }}>{sub.score10.toFixed(1)} / {sub.score4.toFixed(1)}</div>
+                                                  <div style={{ fontWeight: 700, marginBottom: 2 }}>{sub.letterGrade ?? '-'}</div>
+                                                  <div style={{ fontSize: 12, color: '#6B7280' }}>{sub.score10?.toFixed(1) ?? '-'} / {sub.score4?.toFixed(1) ?? '-'}</div>
                                                 </td>
                                                 <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                                                   {sub.id && (

@@ -80,9 +80,6 @@ interface CreateNewsResponse {
   data: NewsApiResponse;
 }
 
-const HARD_CODED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInJvbGVzIjpudWxsLCJzaWduIjpudWxsLCJpYXQiOjE3NzU3OTMxNTc1NzksImV4cCI6MTc3NTc5Njc1NzU3OX0.OcuqDvFuHymaB9AB9bHgaAGY04DlYL6pUjKqJWMb328";
-const API_BASE_URL = "http://localhost:8080/api/v1/admin";
-
 export async function createNews(payload: CreateNewsPayload): Promise<News> {
   const formData = new FormData();
   formData.append('title', payload.title);
@@ -92,23 +89,18 @@ export async function createNews(payload: CreateNewsPayload): Promise<News> {
   if (payload.publishDate) formData.append('publishDate', payload.publishDate);
   if (payload.file) formData.append('file', payload.file);
 
-  const response = await fetch(`${API_BASE_URL}/news/create`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${HARD_CODED_TOKEN}`,
-    },
-    body: formData,
-  });
+  const response = await apiClient<CreateNewsResponse>(
+    '/news/create',
+    {
+      method: 'POST',
+      body: formData as any,
+    }
+  );
 
-  if (!response.ok) {
-    throw new Error(`Failed: ${response.status}`);
-  }
-
-  const json = await response.json();
-  if (!json.data) {
+  if (!response.data) {
     throw new Error('Không nhận được dữ liệu từ server');
   }
-  return mapApiToNews(json.data);
+  return mapApiToNews(response.data);
 }
 
 interface DeleteNewsResponse {

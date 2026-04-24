@@ -33,8 +33,6 @@ interface SubjectApiResponse {
   lectureHours: number;
   practiceHours: number;
   isActive: boolean | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface SubjectApiListResponse {
@@ -49,6 +47,49 @@ interface SubjectApiListResponse {
     first: boolean;
     last: boolean;
   };
+}
+
+interface SubjectDetailApiResponse {
+  code: number;
+  message: string;
+  data: {
+    id: number;
+    subjectCode: string;
+    subjectName: string;
+    credits: number;
+    coefficient: number;
+    lectureHours: number;
+    practiceHours: number;
+    facultyId: number;
+    departmentId: number | null;
+    prerequisiteGroups: Array<{
+      prerequisiteSubjectIds: any;
+      id: number;
+      minSubjectsRequired: number;
+      description: string;
+      items: Array<{          x
+        subjectCode: string;
+        subjectName: string;
+      }>;
+    }>;
+    enrollmentConditions: Array<{
+      id: number;
+      conditionType: string;
+      conditionValue: number;
+      conditionOperator: string;
+      description: string;
+    }>;
+  };
+}
+
+export type SubjectDetail = SubjectDetailApiResponse['data'];
+
+export async function fetchSubjectDetail(subjectId: number): Promise<SubjectDetail> {
+  const response = await apiClient<SubjectDetailApiResponse>(
+    `/subjects/${subjectId}`,
+    { method: 'GET' }
+  );
+  return response.data;
 }
 
 function mapApiToSubject(apiSubject: SubjectApiResponse): Subject {
@@ -189,7 +230,7 @@ interface UpdateResponse {
   data: null;
 }
 
-export async function updateSubject(subjectId: number, payload: Partial<SubjectFormData>): Promise<void> {
+export async function updateSubject(subjectId: number, payload: any): Promise<void> {
   await apiClient<UpdateResponse>(
     `/subjects/update/${subjectId}`,
     {

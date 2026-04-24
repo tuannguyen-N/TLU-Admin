@@ -7,7 +7,7 @@
 /* Header */
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
@@ -26,7 +26,6 @@
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
-  margin-top: 4px;
 }
 
 .backBtn:hover {
@@ -65,7 +64,6 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
 }
 
 .iconWrapper {
@@ -143,4 +141,59 @@
   .infoGrid {
     grid-template-columns: 1fr;
   }
+}
+
+.tableSection {
+  margin-top: 24px;
+}
+
+.tableTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mantine-color-dark-7);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+}
+
+.tableTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+}
+
+.tableTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mantine-color-dark-7);
+  margin: 0;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.formLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mantine-color-dark-6);
+}
+
+.formInput {
+  padding: 8px 12px;
+  border: 1px solid var(--mantine-color-gray-4);
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.formInput:focus {
+  border-color: var(--mantine-color-blue-5);
 }

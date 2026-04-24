@@ -6,12 +6,15 @@ import { AddSubjectCard } from './components/AddSubjectCard';
 import { useSubjects } from './hooks/useSubjects';
 import type { Subject, SubjectFormData } from './types';
 import classes from './SubjectsPage.module.css';
+import { SubjectDetailModal } from './components/SubjectDetailModal';
+import { EditSubjectCard } from './components/EditSubjectCard';
 
 export function SubjectsPage() {
   const [selectedFaculty, setSelectedFaculty] = useState<string>('');
   const [facultiesLoaded, setFacultiesLoaded] = useState(false);
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [viewingSubject, setViewingSubject] = useState<Subject | null>(null);
 
   const {
     subjects,
@@ -51,6 +54,16 @@ export function SubjectsPage() {
     reload();
   };
 
+  const handleSaveEdit = (_data: SubjectFormData) => {
+    notifications.show({
+      title: 'Thành công',
+      message: 'Cập nhật môn học thành công',
+      color: 'green',
+    });
+    setEditingSubject(null);
+    reload();
+  };
+
   return (
     <div className={classes.page}>
       <div className={classes.pageHeader}>
@@ -61,6 +74,7 @@ export function SubjectsPage() {
       </div>
 
       <SubjectList
+        onViewDetail={setViewingSubject}
         subjects={subjects}
         loading={loading}
         error={error}
@@ -99,13 +113,19 @@ export function SubjectsPage() {
         scrollAreaComponent={ScrollArea.Autosize}
       >
         {editingSubject && (
-          <div style={{ padding: 20 }}>
-            <h2>Sửa môn học</h2>
-            <p>Form sửa môn học sẽ được hiển thị ở đây</p>
-            <button onClick={() => setEditingSubject(null)}>Đóng</button>
-          </div>
+          <EditSubjectCard
+            subjectId={editingSubject.id}
+            onCancel={() => setEditingSubject(null)}
+            onSave={handleSaveEdit}
+          />
         )}
       </Modal>
+
+      <SubjectDetailModal
+        subject={viewingSubject}
+        opened={viewingSubject !== null}
+        onClose={() => setViewingSubject(null)}
+      />
     </div>
   );
 }

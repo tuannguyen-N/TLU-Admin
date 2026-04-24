@@ -30,6 +30,29 @@ interface UpdateResponse {
   data: null;
 }
 
+interface DepartmentApiItem {
+  id: number;
+  departmentCode: string;
+  departmentName: string;
+  facultyCode: string;
+  isActive: boolean;
+}
+
+interface DepartmentListResponse {
+  code: number;
+  message: string;
+  data: {
+    content: DepartmentApiItem[];
+    page: number;
+    size: number;
+    total_elements: number;
+    total_pages: number;
+    first: boolean;
+    last: boolean;
+  };
+}
+
+
 const facultyMetaMap: Record<string, Omit<Faculty, 'id' | 'name' | 'facultyCode'> & { name: string; facultyCode: string }> = {
   CNTT: {
     facultyCode: 'CNTT',
@@ -138,4 +161,55 @@ export async function deleteFaculty(facultyId: number): Promise<void> {
       method: 'POST',
     }
   );
+}
+
+export async function getDepartmentsByFacultyCode(facultyCode: string): Promise<DepartmentApiItem[]> {
+  const response = await apiClient<DepartmentListResponse>('/department/all?size=100', {
+    method: 'GET',
+  });
+  return response.data.content.filter((d) => d.facultyCode === facultyCode);
+}
+
+interface CreateDepartmentPayload {
+  departmentCode: string;
+  departmentName: string;
+  facultyId: number; 
+}
+
+interface UpdateDepartmentPayload {
+  departmentCode?: string;
+  departmentName?: string;
+}
+
+export async function createDepartment(payload: CreateDepartmentPayload): Promise<void> {
+  await apiClient<UpdateResponse>('/department/create', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteDepartment(departmentId: number): Promise<void> {
+  await apiClient<UpdateResponse>(`/department/delete/${departmentId}`, {
+    method: 'POST',
+  });
+}
+
+export async function getFaculties(): Promise<FacultyApiResponse[]> {
+  const response = await apiClient<{ code: number; message: string; data: { content: FacultyApiResponse[] } }>(
+    '/faculty/all?size=100',
+    { method: 'GET' }
+  );
+  return response.data.content;
+}
+
+
+export async function updateDepartment(departmentId: number, payload: {
+  departmentCode?: string;
+  departmentName?: string;
+  facultyId?: number;
+}): Promise<void> {
+  await apiClient<UpdateResponse>(`/department/update/${departmentId}`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }

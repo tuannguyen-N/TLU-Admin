@@ -123,9 +123,6 @@ export function AddSubjectCard({ onCancel, onSave }: Props) {
     if (!form.facultyId) {
       newErrors.facultyId = 'Khoa là bắt buộc';
     }
-    if (!form.departmentId) {
-      newErrors.departmentId = 'Bộ môn là bắt buộc';
-    }
     if (!form.subjectCode.trim()) {
       newErrors.subjectCode = 'Mã môn học là bắt buộc';
     }

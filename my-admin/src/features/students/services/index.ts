@@ -196,7 +196,7 @@ function mapApiToStudent(apiStudent: StudentApiResponse): Student {
 }
 
 export async function fetchFaculties(): Promise<Faculty[]> {
-  const response = await apiClient<FacultyApiListResponse>('/faculty/all', { method: 'GET' });
+  const response = await apiClient<FacultyApiListResponse>('/faculty/all?size=100', { method: 'GET' });
   return response.data.content
     .filter(f => f.isActive)
     .map(mapApiToFaculty);

@@ -1,12 +1,12 @@
-import { Button, Group, Checkbox, Select, Text } from '@mantine/core';
+import { Button, Group, Checkbox, Select, Text, Loader, Center } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { useState } from 'react';
-import type { SubjectDetail, SemesterDetail } from '../types';
+import { useState, useEffect } from 'react';
+import type { SubjectDetail } from '../types';
+import { fetchSemesters } from '../../semesters/services';
 import classes from './AddSubjectCard.module.css';
 
 interface EditSubjectCardProps {
     subject: SubjectDetail;
-    semesters: SemesterDetail[];
     onCancel: () => void;
     onSave: (data: SubjectFormData) => void;
 }
@@ -24,26 +24,45 @@ const electiveGroupOptions = [
     { value: 'GROUP_3', label: 'Nhóm tự chọn 3' },
 ];
 
-export function EditSubjectCard({ subject, semesters, onCancel, onSave }: EditSubjectCardProps) {
-    const currentSemester = semesters.find(sem => sem.subjects.some(sub => sub.id === subject.id));
-    const semesterOptions = semesters.map(sem => ({
-        value: sem.semesterId.toString(),
-        label: sem.semesterName,
-    }));
+export function EditSubjectCard({ subject, onCancel, onSave }: EditSubjectCardProps) {
+    const [semesterOptions, setSemesterOptions] = useState<{ value: string; label: string }[]>([]);
+    const [semestersLoading, setSemestersLoading] = useState(false);
+    const [semestersError, setSemestersError] = useState<string | null>(null);
 
-    const [selectedSemesterId, setSelectedSemesterId] = useState<string>(
-        currentSemester?.semesterId.toString() || ''
-    );
+    const [selectedSemesterId, setSelectedSemesterId] = useState<string>('');
     const [selectedElectiveGroup, setSelectedElectiveGroup] = useState<string>(
         subject.electiveGroup || ''
     );
     const [isRequired, setIsRequired] = useState<boolean>(subject.isRequired);
 
+    useEffect(() => {
+        const loadSemesters = async () => {
+            setSemestersLoading(true);
+            setSemestersError(null);
+            try {
+                const { semesters } = await fetchSemesters({ page: 0, size: 50 });
+                const options = semesters.map((sem: any) => ({
+                    value: String(sem.id),
+                    label: sem.semesterName,
+                }));
+                setSemesterOptions(options);
+
+                // pre-fill học kỳ hiện tại của môn nếu match được
+                if (subject.semesterId) {
+                    setSelectedSemesterId(String(subject.semesterId));
+                }
+            } catch {
+                setSemestersError('Không thể tải danh sách học kỳ');
+            } finally {
+                setSemestersLoading(false);
+            }
+        };
+        loadSemesters();
+    }, []);
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!selectedSemesterId) {
-            return;
-        }
+        if (!selectedSemesterId) return;
         onSave({
             semesterId: parseInt(selectedSemesterId, 10),
             isRequired,
@@ -63,15 +82,24 @@ export function EditSubjectCard({ subject, semesters, onCancel, onSave }: EditSu
                 <div className={classes.formGrid}>
                     <Text size="sm" fw={500}>Mã môn: {subject.subjectCode}</Text>
                     <div />
-                    <Select
-                        label="Học kỳ"
-                        data={semesterOptions}
-                        value={selectedSemesterId}
-                        onChange={(val) => val && setSelectedSemesterId(val)}
-                        placeholder="Chọn học kỳ"
-                        required
-                        size="sm"
-                    />
+
+                    {semestersError ? (
+                        <Text size="sm" c="red">{semestersError}</Text>
+                    ) : (
+                        <Select
+                            label="Học kỳ"
+                            data={semesterOptions}
+                            value={selectedSemesterId}
+                            onChange={(val) => val && setSelectedSemesterId(val)}
+                            placeholder={semestersLoading ? 'Đang tải...' : 'Chọn học kỳ'}
+                            disabled={semestersLoading}
+                            rightSection={semestersLoading ? <Loader size={14} /> : undefined}
+                            required
+                            searchable
+                            size="sm"
+                        />
+                    )}
+
                     <Select
                         label="Nhóm tự chọn"
                         data={electiveGroupOptions}
@@ -88,10 +116,12 @@ export function EditSubjectCard({ subject, semesters, onCancel, onSave }: EditSu
                     />
                 </div>
                 <Group justify="flex-end" mt="xl">
-                    <Button variant="subtle" onClick={onCancel}>
-                        Hủy
-                    </Button>
-                    <Button type="submit" style={{ backgroundColor: '#111827', color: '#fff' }}>
+                    <Button variant="subtle" onClick={onCancel}>Hủy</Button>
+                    <Button
+                        type="submit"
+                        style={{ backgroundColor: '#111827', color: '#fff' }}
+                        disabled={semestersLoading || !selectedSemesterId}
+                    >
                         Lưu thay đổi
                     </Button>
                 </Group>

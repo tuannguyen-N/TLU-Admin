@@ -5,7 +5,7 @@ import { TrainingProgramList } from './components/TrainingProgramList';
 import { ProgramSubjects } from './components/ProgramSubjects';
 import { AddTrainingProgramCard } from './components/AddTrainingProgramCard';
 import { EditTrainingProgramCard } from './components/EditTrainingProgramCard';
-import { AddSubjectCard } from './components/AddSubjectCard';
+import { AddSubjectToProgramCard } from './components/AddSubjectToProgramCard';
 import { EditSubjectCard } from './components/EditSubjectCard';
 import { useTrainingPrograms } from './hooks/useTrainingPrograms';
 import { fetchStudyProgramDetail, updateSubject } from './services';
@@ -26,9 +26,11 @@ export function TrainingProgramPage() {
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [editingProgram, setEditingProgram] = useState<TrainingProgram | null>(null);
   const [viewingProgram, setViewingProgram] = useState<StudyProgramDetail | null>(null);
+  const [viewingProgramId, setViewingProgramId] = useState<number | null>(null);
   const [programDetailLoading, setProgramDetailLoading] = useState(false);
   const [programDetailError, setProgramDetailError] = useState<string | null>(null);
   const [addSubjectSemesterId, setAddSubjectSemesterId] = useState<number | null>(null);
+  const [addSubjectProgramId, setAddSubjectProgramId] = useState<number | null>(null);
   const [editingSubject, setEditingSubject] = useState<SubjectDetail | null>(null);
 
   const year = parseInt(selectedYear, 10);
@@ -58,6 +60,7 @@ export function TrainingProgramPage() {
     try {
       const detail = await fetchStudyProgramDetail(program.id);
       setViewingProgram(detail);
+      setViewingProgramId(program.id);
     } catch (err) {
       setProgramDetailError('Không thể tải chi tiết chương trình đào tạo');
     } finally {
@@ -67,6 +70,7 @@ export function TrainingProgramPage() {
 
   const handleBackFromDetail = () => {
     setViewingProgram(null);
+    setViewingProgramId(null);
     setProgramDetailError(null);
   };
 
@@ -87,8 +91,8 @@ export function TrainingProgramPage() {
     }
   };
 
-  const handleAddSubject = (semesterId: number) => {
-    setAddSubjectSemesterId(semesterId);
+  const handleAddSubject = (programId: number) => {
+    setAddSubjectProgramId(programId);
   };
 
   const handleEditSubject = (subject: SubjectDetail) => {
@@ -118,6 +122,7 @@ export function TrainingProgramPage() {
             </p>
           </div>
           <ProgramSubjects
+            programId={viewingProgramId!}
             programName={viewingProgram.studyProgramName}
             programCode={viewingProgram.studyProgramCode}
             semesters={viewingProgram.semesters.map(sem => ({
@@ -198,9 +203,40 @@ export function TrainingProgramPage() {
       </Modal>
 
       <Modal
-        opened={addSubjectSemesterId !== null || editingSubject !== null}
+        opened={addSubjectProgramId !== null}
         onClose={() => {
+          setAddSubjectProgramId(null);
           setAddSubjectSemesterId(null);
+        }}
+        centered
+        size="60%"
+        withCloseButton={false}
+        scrollAreaComponent={ScrollArea.Autosize}
+      >
+        {addSubjectProgramId !== null && (
+          <AddSubjectToProgramCard
+            studyProgramId={addSubjectProgramId}
+            onCancel={() => {
+              setAddSubjectProgramId(null);
+              setAddSubjectSemesterId(null);
+            }}
+            onSave={() => {
+              setAddSubjectProgramId(null);
+              setAddSubjectSemesterId(null);
+              handleReloadDetail();
+              notifications.show({
+                title: 'Thành công',
+                message: 'Thêm môn học thành công',
+                color: 'green',
+              });
+            }}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        opened={editingSubject !== null}
+        onClose={() => {
           setEditingSubject(null);
         }}
         centered
@@ -208,18 +244,6 @@ export function TrainingProgramPage() {
         withCloseButton={false}
         scrollAreaComponent={ScrollArea.Autosize}
       >
-        {addSubjectSemesterId !== null && (
-          <AddSubjectCard
-            semesterId={addSubjectSemesterId}
-            semesterName={viewingProgram?.semesters.find(s => s.semesterId === addSubjectSemesterId)?.semesterName || ''}
-            onCancel={() => setAddSubjectSemesterId(null)}
-            onSave={(data) => {
-              console.log('Add subject:', data, 'semesterId:', addSubjectSemesterId);
-              setAddSubjectSemesterId(null);
-              handleReloadDetail();
-            }}
-          />
-        )}
         {editingSubject && (
           <EditSubjectCard
             subject={editingSubject}

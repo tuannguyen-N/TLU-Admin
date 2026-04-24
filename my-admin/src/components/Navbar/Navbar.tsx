@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
 import {
   IconLayoutDashboard,
   IconUsers,
@@ -40,6 +41,19 @@ const data = [
 ];
 
 export function Navbar() {
+  const { instance } = useMsal();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userInfo');
+    instance.logoutRedirect();
+  };
+
+  const handleChangeAccount = () => {
+    instance.logoutRedirect();
+  };
+
   const links = data.map((item) => (
     <NavLink
       to={item.link}
@@ -62,11 +76,11 @@ export function Navbar() {
       </div>
 
       <div className={classes.footer}>
-        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
+        <a href="#" className={classes.link} onClick={(event) => { event.preventDefault(); handleChangeAccount(); }}>
           <IconSwitchHorizontal className={classes.linkIcon} stroke={1.5} />
           <span>Change account</span>
         </a>
-        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
+        <a href="#" className={classes.link} onClick={(event) => { event.preventDefault(); handleLogout(); }}>
           <IconLogout className={classes.linkIcon} stroke={1.5} />
           <span>Logout</span>
         </a>

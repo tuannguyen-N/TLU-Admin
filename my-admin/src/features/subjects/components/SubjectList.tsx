@@ -20,6 +20,7 @@ interface Props {
     onAddSubject: () => void;
     onEditSubject: (subject: Subject) => void;
     onDeleteConfirm: (subjectId: number) => void;
+    onViewDetail: (subject: Subject) => void;
     selectedFaculty: string;
     onFacultyChange: (f: string) => void;
     faculties: FacultyOption[];
@@ -28,7 +29,7 @@ interface Props {
 export function SubjectList({
     subjects, loading, error,
     page, totalPages,
-    onPage, onReload, onAddSubject, onEditSubject,
+    onPage, onReload, onAddSubject, onEditSubject, onViewDetail,
     onDeleteConfirm, selectedFaculty, onFacultyChange, faculties,
 }: Props) {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -135,7 +136,14 @@ export function SubjectList({
                                         <tr key={subject.id} className={classes.row}>
                                             <td className={classes.code}>{subject.subjectCode}</td>
                                             <td>
-                                                <Text size="sm" fw={600}>{subject.subjectName}</Text>
+                                                <Text
+                                                    size="sm"
+                                                    fw={600}
+                                                    style={{ cursor: 'pointer', color: 'var(--mantine-color-blue-6)' }}
+                                                    onClick={() => onViewDetail(subject)}
+                                                >
+                                                    {subject.subjectName}
+                                                </Text>
                                             </td>
                                             <td className={classes.credits}>{subject.credits}</td>
                                             <td>{subject.coefficient}</td>

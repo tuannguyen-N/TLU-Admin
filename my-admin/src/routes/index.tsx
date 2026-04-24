@@ -1,4 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from '../components/ProtectedRoute';
+import { LoginPage } from '../pages/LoginPage';
+import { AuthCallback } from '../services/auth/AuthCallback';
 import Dashboard from '../pages/Dashboard';
 import {StudentsPage} from '../features/students/StudentsPage';
 import NotFound from '../pages/NotFound';
@@ -20,23 +23,28 @@ import { AcademicResultsPage } from '../features/academic-results/AcademicResult
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/students" element={<StudentsPage />} />
-      <Route path="/programs" element={<TrainingProgramPage />} />
-      <Route path="/majors" element={<MajorsPage />} />
-      <Route path="/subjects" element={<SubjectsPage />} />
-      <Route path="/classes" element={<CourseClassesPage />} />
-      <Route path="/lecturers" element={<LecturersPage />} />
-      <Route path="/semesters" element={<SemestersPage />} />
-      <Route path="/departments" element={<DepartmentsPage />} />
-      <Route path="/student-classes" element={<StudentClassesPage />} />
-      <Route path="/news" element={<NewsPage />} />
-      <Route path="/requests" element={<RequestsPage />} />
-      <Route path="/notifications" element={<NotificationsPage />} />
-      <Route path="/payments" element={<PaymentsPage />} />
-      <Route path="/academic-results" element={<AcademicResultsPage />} />
-      <Route path="/exams" element={<ExamsPage />} />
+      {/* Public routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Protected routes */}
+      <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
+      <Route path="/programs" element={<ProtectedRoute><TrainingProgramPage /></ProtectedRoute>} />
+      <Route path="/majors" element={<ProtectedRoute><MajorsPage /></ProtectedRoute>} />
+      <Route path="/subjects" element={<ProtectedRoute><SubjectsPage /></ProtectedRoute>} />
+      <Route path="/classes" element={<ProtectedRoute><CourseClassesPage /></ProtectedRoute>} />
+      <Route path="/lecturers" element={<ProtectedRoute><LecturersPage /></ProtectedRoute>} />
+      <Route path="/semesters" element={<ProtectedRoute><SemestersPage /></ProtectedRoute>} />
+      <Route path="/departments" element={<ProtectedRoute><DepartmentsPage /></ProtectedRoute>} />
+      <Route path="/student-classes" element={<ProtectedRoute><StudentClassesPage /></ProtectedRoute>} />
+      <Route path="/news" element={<ProtectedRoute><NewsPage /></ProtectedRoute>} />
+      <Route path="/requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+      <Route path="/payments" element={<ProtectedRoute><PaymentsPage /></ProtectedRoute>} />
+      <Route path="/academic-results" element={<ProtectedRoute><AcademicResultsPage /></ProtectedRoute>} />
+      <Route path="/exams" element={<ProtectedRoute><ExamsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
