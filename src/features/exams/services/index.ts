@@ -28,8 +28,8 @@ interface ExamApiListResponse {
     content: ExamApiResponse[];
     page: number;
     size: number;
-    total_elements: number;
-    total_pages: number;
+    totalElements: number;
+    totalPages: number;
     first: boolean;
     last: boolean;
   };
@@ -77,8 +77,8 @@ export async function fetchExamsAPI(params: FetchExamsParams): Promise<FetchExam
       examType: e.examType,
       note: e.note,
     })),
-    totalElements: response.data.total_elements,
-    totalPages: response.data.total_pages,
+    totalElements: response.data.totalElements,
+    totalPages: response.data.totalPages,
     page: response.data.page,
     size: response.data.size,
   };

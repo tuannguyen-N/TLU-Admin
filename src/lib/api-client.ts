@@ -23,13 +23,17 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { params, ...fetchOptions } = options;
 
+  const isFormData = fetchOptions.body instanceof FormData;
+
   console.log("[API] calling:", buildUrl(endpoint, params));
   console.log("[API] fetchOptions:", fetchOptions);
 
   const response = await fetch(buildUrl(endpoint, params), {
     ...fetchOptions,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData
+        ? {}
+        : { "Content-Type": "application/json" }),
       "Accept": "application/json",
       "Authorization": `Bearer ${HARD_CODED_TOKEN}`,
       ...fetchOptions.headers,
